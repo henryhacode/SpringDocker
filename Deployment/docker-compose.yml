@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  dbsvc:
+    image: mysql:8.0
+    container_name: shopping_db
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=dbadmin
+      - MYSQL_DATABASE=shopping
+
+    ports:
+      - "5001:3306"
+#      spring db url without docker: port 5001, inside docker: port 3306
+
+#    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - db:/var/lib/mysql
+      - ./InitDb:/docker-entrypoint-initdb.d
+
+    networks:
+      - shopping
+
+
+  oder:
+    image: springdocker:latest
+    container_name: shopping_order
+    restart: always
+    environment:
+      - DBURL=jdbc:mysql://dbsvc:3306/orderdb
+
+    ports:
+      - "5503:5503"
+
+    networks:
+      - shopping
+
+    depends_on:
+      - dbsvc
+
+volumes:
+  db:
+    driver: local
+
+networks:
+  shopping:
+    driver: bridge
